@@ -20,6 +20,12 @@ type createSubscription struct{}
 
 type deleteSubscription struct{}
 
+type publishTimeoutKey struct{}
+
+type subscribeTimeoutKey struct{}
+
+type unsubscribeTimeoutKey struct{}
+
 // ClientOption is a broker Option which allows google pubsub client options to be
 // set for the client
 func ClientOption(c ...option.ClientOption) broker.Option {
@@ -40,6 +46,37 @@ func ProjectID(id string) broker.Option {
 		o.Context = context.WithValue(o.Context, projectIDKey{}, id)
 	}
 }
+
+// PublishTimeout provides an timeout when publish
+func PublishTimeout(d time.Duration) broker.Option {
+	return func(o *broker.Options) {
+		if o.Context == nil {
+			o.Context = context.Background()
+		}
+		o.Context = context.WithValue(o.Context, publishTimeoutKey{}, d)
+	}
+}
+
+// SubscribeTimeout provides an timeout when subscribe
+func SubscribeTimeout(d time.Duration) broker.Option {
+	return func(o *broker.Options) {
+		if o.Context == nil {
+			o.Context = context.Background()
+		}
+		o.Context = context.WithValue(o.Context, subscribeTimeoutKey{}, d)
+	}
+}
+
+// UnsubscribeTimeout provides an timeout when subscribe
+func UnsubscribeTimeout(d time.Duration) broker.Option {
+	return func(o *broker.Options) {
+		if o.Context == nil {
+			o.Context = context.Background()
+		}
+		o.Context = context.WithValue(o.Context, unsubscribeTimeoutKey{}, d)
+	}
+}
+
 
 // CreateSubscription prevents the creation of the subscription if it not exists
 func CreateSubscription(b bool) broker.Option {
