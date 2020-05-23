@@ -98,13 +98,18 @@ func (s *subscriber) Topic() string {
 }
 
 func (s *subscriber) Unsubscribe() error {
+	ctx := context.Background()
+	timeout, withTimeout := s.options.Context.Value(unsubscribeTimeoutKey{}).(time.Duration)
+	if withTimeout {
+		ctx, _ = context.WithTimeout(ctx, timeout)
+	}
 	select {
 	case <-s.exit:
 		return nil
 	default:
 		close(s.exit)
 		if deleteSubscription, ok := s.options.Context.Value(deleteSubscription{}).(bool); !ok || deleteSubscription {
-			return s.sub.Delete(context.Background())
+			return s.sub.Delete(ctx)
 		}
 		return nil
 	}
@@ -153,6 +158,11 @@ func (b *pubsubBroker) Publish(topic string, msg *broker.Message, opts ...broker
 	t := b.client.Topic(topic)
 	ctx := context.Background()
 
+	timeout, withTimeout := b.options.Context.Value(publishTimeoutKey{}).(time.Duration)
+	if withTimeout {
+		ctx, _ = context.WithTimeout(ctx, timeout)
+	}
+
 	m := &pubsub.Message{
 		ID:         "m-" + uuid.New().String(),
 		Data:       msg.Body,
@@ -186,6 +196,11 @@ func (b *pubsubBroker) Subscribe(topic string, h broker.Handler, opts ...broker.
 
 	ctx := context.Background()
 	sub := b.client.Subscription(options.Queue)
+
+	timeout, withTimeout := b.options.Context.Value(subscribeTimeoutKey{}).(time.Duration)
+	if withTimeout {
+		ctx, _ = context.WithTimeout(ctx, timeout)
+	}
 
 	if createSubscription, ok := b.options.Context.Value(createSubscription{}).(bool); !ok || createSubscription {
 		exists, err := sub.Exists(ctx)
