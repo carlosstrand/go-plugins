@@ -67,7 +67,7 @@ func SubscribeTimeout(d time.Duration) broker.Option {
 	}
 }
 
-// UnsubscribeTimeout provides an timeout when subscribe
+// UnsubscribeTimeout provides an timeout when unsubscribe
 func UnsubscribeTimeout(d time.Duration) broker.Option {
 	return func(o *broker.Options) {
 		if o.Context == nil {
